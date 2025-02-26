@@ -2,8 +2,6 @@ package com.example.mindnote;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -44,19 +42,24 @@ public class MainActivity extends AppCompatActivity {
                     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                         int itemId = item.getItemId();
                         if (itemId == R.id.navigation_journal) {
-                            // Handle journal click
+                            // Navigate to Journal activity
+                            Intent intent = new Intent(MainActivity.this, JournalActivity.class);
+                            startActivity(intent);
                             return true;
                         } else if (itemId == R.id.navigation_notes) {
                             // Handle notes click
+                            Toast.makeText(MainActivity.this, "Notes tab clicked", Toast.LENGTH_SHORT).show();
                             return true;
                         } else if (itemId == R.id.navigation_home) {
                             // Already on home
                             return true;
                         } else if (itemId == R.id.navigation_calendar) {
                             // Handle calendar click
+                            Toast.makeText(MainActivity.this, "Calendar tab clicked", Toast.LENGTH_SHORT).show();
                             return true;
                         } else if (itemId == R.id.navigation_profile) {
                             // Handle profile click
+                            Toast.makeText(MainActivity.this, "Profile tab clicked", Toast.LENGTH_SHORT).show();
                             return true;
                         }
                         return false;
@@ -67,11 +70,9 @@ public class MainActivity extends AppCompatActivity {
         addEntryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Start add entry activity
-                // Intent intent = new Intent(MainActivity.this, AddEntryActivity.class);
-                // startActivity(intent);
-                // For now, just show a temporary message
-                Toast.makeText(MainActivity.this, "Add new entry clicked", Toast.LENGTH_SHORT).show();
+                // Navigate to Journal activity for new entry
+                Intent intent = new Intent(MainActivity.this, JournalActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -79,9 +80,7 @@ public class MainActivity extends AppCompatActivity {
         viewAllButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Start all entries activity
-                // Intent intent = new Intent(MainActivity.this, AllEntriesActivity.class);
-                // startActivity(intent);
+                // Show a toast for now
                 Toast.makeText(MainActivity.this, "View all entries clicked", Toast.LENGTH_SHORT).show();
             }
         });

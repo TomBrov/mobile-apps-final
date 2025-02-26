@@ -1,8 +1,3 @@
 <resources>
     <string name="app_name">Mindnote</string>
-    <string name="home_title">Home</string>
-    <string name="new_entry_title">New Entry</string>
-    <string name="profile_title">Profile</string>
-    <string name="calendar_title">Calendar</string>
-    <string name="inspiration_title">Inspiration</string>
 </resources>

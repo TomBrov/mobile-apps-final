@@ -59,6 +59,21 @@
             app:layout_constraintTop_toBottomOf="@+id/headerRow"
             tools:text="Today I am grateful for my family and the support they've given me through tough times. It means so much to have people who care." />
 
+        <!-- Image View (for demo entries) -->
+        <ImageView
+            android:id="@+id/entryImageView"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginTop="8dp"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/noteText"
+            tools:src="@drawable/family_sunset"
+            tools:visibility="visible" />
+
         <!-- Tags -->
         <TextView
             android:id="@+id/tagsText"
@@ -69,7 +84,7 @@
             android:textSize="14sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/noteText"
+            app:layout_constraintTop_toBottomOf="@+id/entryImageView"
             tools:text="Family, Health" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

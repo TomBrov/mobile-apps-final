@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,6 +35,7 @@ public class JournalActivity extends AppCompatActivity {
     private Button addPhotoButton;
     private Button saveButton;
     private TextView cancelButton;
+    private ImageView entryImage;
     private int selectedMoodIndex = -1;
     private JournalDataManager dataManager;
     private JournalEntry currentEntry;
@@ -104,14 +106,18 @@ public class JournalActivity extends AppCompatActivity {
         saveButton = findViewById(R.id.saveButton);
         cancelButton = findViewById(R.id.cancelButton);
 
+        // Entry image view (if it exists in the layout)
+        entryImage = findViewById(R.id.entryImage);
+
         // Bottom navigation
         bottomNavigationView = findViewById(R.id.bottomNavigation);
     }
 
     private void populateEntryData() {
-        // Set mood
-        selectedMoodIndex = currentEntry.getMood();
-        selectMood(selectedMoodIndex);
+        // Set mood - IMPORTANT to call selectMood to highlight the right mood icon
+        if (currentEntry.getMood() >= 0 && currentEntry.getMood() < moodButtons.length) {
+            selectMood(currentEntry.getMood());
+        }
 
         // Set note text
         gratitudeInput.setText(currentEntry.getNote());
@@ -139,6 +145,27 @@ public class JournalActivity extends AppCompatActivity {
 
         // Set date
         dateText.setText(currentEntry.getFormattedDate());
+
+        // Handle image for demo entries
+        if (entryImage != null) {
+            String imagePath = currentEntry.getImagePath();
+            if (JournalDataManager.isDemoImage(imagePath)) {
+                if (imagePath.equals(JournalDataManager.DEMO_IMAGE_FAMILY)) {
+                    entryImage.setImageResource(R.drawable.family_sunset);
+                    entryImage.setVisibility(View.VISIBLE);
+                } else if (imagePath.equals(JournalDataManager.DEMO_IMAGE_MEDITATION)) {
+                    entryImage.setImageResource(R.drawable.meditation_sunrise);
+                    entryImage.setVisibility(View.VISIBLE);
+                } else if (imagePath.equals(JournalDataManager.DEMO_IMAGE_LIGHTBULB)) {
+                    entryImage.setImageResource(R.drawable.lightbulb);
+                    entryImage.setVisibility(View.VISIBLE);
+                } else {
+                    entryImage.setVisibility(View.GONE);
+                }
+            } else {
+                entryImage.setVisibility(View.GONE);
+            }
+        }
     }
 
     private void setCurrentDate() {
@@ -183,14 +210,17 @@ public class JournalActivity extends AppCompatActivity {
     }
 
     private void selectMood(int index) {
-        // Deselect previously selected mood
-        if (selectedMoodIndex != -1) {
-            moodButtons[selectedMoodIndex].setAlpha(1.0f);
+        // Reset all mood buttons to full opacity
+        for (ImageButton button : moodButtons) {
+            button.setAlpha(1.0f);
         }
 
-        // Select new mood
+        // Select new mood and reduce its opacity to show it's selected
         selectedMoodIndex = index;
-        moodButtons[selectedMoodIndex].setAlpha(0.7f);
+        moodButtons[selectedMoodIndex].setAlpha(0.6f);
+
+        // Add a border or background to make the selection more obvious
+        // You could also change the background here or add a selection indicator
 
         String[] moodNames = {"Happy", "Neutral", "Sad"};
         Toast.makeText(this, "Selected mood: " + moodNames[index], Toast.LENGTH_SHORT).show();
@@ -219,6 +249,11 @@ public class JournalActivity extends AppCompatActivity {
         if (tagHealth.isChecked()) tags.add("Health");
         if (tagPersonal.isChecked()) tags.add("Personal");
         currentEntry.setTags(tags);
+
+        // Preserve demo image path if this is a demo entry
+        if (!isEditMode) {
+            currentEntry.setImagePath(null); // Clear image path for new entries
+        }
 
         // Save entry
         if (isEditMode) {

@@ -34,3 +34,5 @@ google-services.json
 ./gradlew*
 gradlew
 gradle
+**/.DS_Store
+**/.run

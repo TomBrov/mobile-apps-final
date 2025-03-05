@@ -17,7 +17,9 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.chip.Chip;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class JournalActivity extends AppCompatActivity {
@@ -33,14 +35,36 @@ public class JournalActivity extends AppCompatActivity {
     private Button saveButton;
     private TextView cancelButton;
     private int selectedMoodIndex = -1;
+    private JournalDataManager dataManager;
+    private JournalEntry currentEntry;
+    private boolean isEditMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_journal);
 
+        // Initialize data manager
+        dataManager = JournalDataManager.getInstance(this);
+
         // Initialize views
         initViews();
+
+        // Check if we're editing an existing entry
+        String entryId = getIntent().getStringExtra("entry_id");
+        if (entryId != null) {
+            isEditMode = true;
+            currentEntry = dataManager.getEntryById(entryId);
+            if (currentEntry != null) {
+                populateEntryData();
+            } else {
+                // Entry not found, create new
+                currentEntry = new JournalEntry();
+            }
+        } else {
+            // Create a new entry
+            currentEntry = new JournalEntry();
+        }
 
         // Set current date
         setCurrentDate();
@@ -84,10 +108,45 @@ public class JournalActivity extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.bottomNavigation);
     }
 
+    private void populateEntryData() {
+        // Set mood
+        selectedMoodIndex = currentEntry.getMood();
+        selectMood(selectedMoodIndex);
+
+        // Set note text
+        gratitudeInput.setText(currentEntry.getNote());
+
+        // Set tags
+        List<String> tags = currentEntry.getTags();
+        if (tags != null) {
+            for (String tag : tags) {
+                switch (tag) {
+                    case "Work":
+                        tagWork.setChecked(true);
+                        break;
+                    case "Family":
+                        tagFamily.setChecked(true);
+                        break;
+                    case "Health":
+                        tagHealth.setChecked(true);
+                        break;
+                    case "Personal":
+                        tagPersonal.setChecked(true);
+                        break;
+                }
+            }
+        }
+
+        // Set date
+        dateText.setText(currentEntry.getFormattedDate());
+    }
+
     private void setCurrentDate() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault());
-        String currentDate = dateFormat.format(new Date());
-        dateText.setText(currentDate);
+        if (!isEditMode) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault());
+            String currentDate = dateFormat.format(new Date());
+            dateText.setText(currentDate);
+        }
     }
 
     private void setupButtons() {
@@ -97,11 +156,9 @@ public class JournalActivity extends AppCompatActivity {
             moodButtons[i].setOnClickListener(v -> selectMood(index));
         }
 
-        // Back button returns to MainActivity
+        // Back button returns to previous screen
         backButton.setOnClickListener(v -> {
-            Intent intent = new Intent(JournalActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();
+            onBackPressed();
         });
 
         // More button shows options
@@ -121,8 +178,6 @@ public class JournalActivity extends AppCompatActivity {
 
         // Cancel button
         cancelButton.setOnClickListener(v -> {
-            Intent intent = new Intent(JournalActivity.this, MainActivity.class);
-            startActivity(intent);
             finish();
         });
     }
@@ -153,25 +208,28 @@ public class JournalActivity extends AppCompatActivity {
             return;
         }
 
-        // Get selected tags
-        StringBuilder tags = new StringBuilder();
-        if (tagWork.isChecked()) tags.append("Work, ");
-        if (tagFamily.isChecked()) tags.append("Family, ");
-        if (tagHealth.isChecked()) tags.append("Health, ");
-        if (tagPersonal.isChecked()) tags.append("Personal, ");
+        // Update entry data
+        currentEntry.setMood(selectedMoodIndex);
+        currentEntry.setNote(gratitudeInput.getText().toString().trim());
 
-        // Remove trailing comma if any
-        String tagsString = tags.toString();
-        if (tagsString.endsWith(", ")) {
-            tagsString = tagsString.substring(0, tagsString.length() - 2);
+        // Get selected tags
+        List<String> tags = new ArrayList<>();
+        if (tagWork.isChecked()) tags.add("Work");
+        if (tagFamily.isChecked()) tags.add("Family");
+        if (tagHealth.isChecked()) tags.add("Health");
+        if (tagPersonal.isChecked()) tags.add("Personal");
+        currentEntry.setTags(tags);
+
+        // Save entry
+        if (isEditMode) {
+            dataManager.updateEntry(currentEntry);
+            Toast.makeText(this, "Entry updated!", Toast.LENGTH_SHORT).show();
+        } else {
+            dataManager.addEntry(currentEntry);
+            Toast.makeText(this, "Entry saved!", Toast.LENGTH_SHORT).show();
         }
 
-        // For now, just show a success message
-        Toast.makeText(this, "Entry saved successfully!", Toast.LENGTH_SHORT).show();
-
-        // Return to MainActivity
-        Intent intent = new Intent(JournalActivity.this, MainActivity.class);
-        startActivity(intent);
+        // Return to previous screen
         finish();
     }
 
@@ -189,7 +247,10 @@ public class JournalActivity extends AppCompatActivity {
                             // Already on journal page
                             return true;
                         } else if (itemId == R.id.navigation_notes) {
-                            // Handle notes click
+                            // Navigate to notes
+                            Intent intent = new Intent(JournalActivity.this, NotesActivity.class);
+                            startActivity(intent);
+                            finish();
                             return true;
                         } else if (itemId == R.id.navigation_home) {
                             // Return to home
@@ -198,10 +259,10 @@ public class JournalActivity extends AppCompatActivity {
                             finish();
                             return true;
                         } else if (itemId == R.id.navigation_calendar) {
-                            // Handle calendar click
+                            // Handle calendar click (future feature)
                             return true;
                         } else if (itemId == R.id.navigation_profile) {
-                            // Handle profile click
+                            // Handle profile click (future feature)
                             return true;
                         }
                         return false;

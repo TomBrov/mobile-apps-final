@@ -2,6 +2,7 @@ package com.example.mindnote;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,7 +14,6 @@ import android.widget.Toast;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -21,16 +21,25 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigationView;
     private MaterialButton addEntryButton;
     private TextView viewAllButton;
+    private TextView streakCountText;
+    private TextView entriesCountText;
+    private JournalDataManager dataManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Initialize data manager
+        dataManager = JournalDataManager.getInstance(this);
+
         // Initialize views
         bottomNavigationView = findViewById(R.id.bottomNavigation);
         addEntryButton = findViewById(R.id.addEntryButton);
         viewAllButton = findViewById(R.id.viewAllButton);
+
+        // Update streak and entries count
+        updateStats();
 
         // Set Home as selected item
         bottomNavigationView.setSelectedItemId(R.id.navigation_home);
@@ -47,8 +56,9 @@ public class MainActivity extends AppCompatActivity {
                             startActivity(intent);
                             return true;
                         } else if (itemId == R.id.navigation_notes) {
-                            // Handle notes click
-                            Toast.makeText(MainActivity.this, "Notes tab clicked", Toast.LENGTH_SHORT).show();
+                            // Navigate to Notes activity
+                            Intent intent = new Intent(MainActivity.this, NotesActivity.class);
+                            startActivity(intent);
                             return true;
                         } else if (itemId == R.id.navigation_home) {
                             // Already on home
@@ -80,34 +90,60 @@ public class MainActivity extends AppCompatActivity {
         viewAllButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Show a toast for now
-                Toast.makeText(MainActivity.this, "View all entries clicked", Toast.LENGTH_SHORT).show();
+                // Navigate to Notes activity to see all entries
+                Intent intent = new Intent(MainActivity.this, NotesActivity.class);
+                startActivity(intent);
             }
         });
+
+        // Populate recent entries
+        updateRecentEntries();
     }
 
-    // Model class for entry
-    public static class Entry {
-        private String date;
-        private String content;
-        private int imageResourceId;
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Refresh the data when returning to this activity
+        updateStats();
+        updateRecentEntries();
+    }
 
-        public Entry(String date, String content, int imageResourceId) {
-            this.date = date;
-            this.content = content;
-            this.imageResourceId = imageResourceId;
-        }
+    private void updateStats() {
+        // For now, we'll just set a static streak count
+        // In a real app, you'd calculate this based on consecutive days with entries
 
-        public String getDate() {
-            return date;
-        }
+        // Update total entries count
+        int entryCount = dataManager.getEntryCount();
 
-        public String getContent() {
-            return content;
-        }
+        try {
+            // Find and update the streak count TextView
+            if (findViewById(R.id.streakCard) != null) {
+                View streakCard = findViewById(R.id.streakCard);
+                TextView streakText = streakCard.findViewById(android.R.id.text1);
+                if (streakText != null) {
+                    streakText.setText("7 day streak");  // Static for now
+                }
+            }
 
-        public int getImageResourceId() {
-            return imageResourceId;
+            // Find and update the entries count TextView
+            if (findViewById(R.id.entriesCard) != null) {
+                View entriesCard = findViewById(R.id.entriesCard);
+                TextView entriesText = entriesCard.findViewById(android.R.id.text1);
+                if (entriesText != null) {
+                    entriesText.setText(entryCount + " total entries");
+                }
+            }
+        } catch (Exception e) {
+            // Fallback in case the layout structure isn't exactly as expected
+            e.printStackTrace();
         }
+    }
+
+    private void updateRecentEntries() {
+        // Get recent entries
+        List<JournalEntry> entries = dataManager.getAllEntries();
+
+        // For now, we'll just leave the static entries from the XML layout
+        // In a real app, you'd dynamically create or update views for each entry
     }
 }
